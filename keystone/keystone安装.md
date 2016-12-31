@@ -3,8 +3,9 @@
 ##环境
 >centos7.2
 
-###下载软件包：
-#wget https://launchpad.net/keystone/icehouse/2014.1.3/+download/keystone-2014.1.3.tar.gz
+###下载软件包
+
+~~wget https://launchpad.net/keystone/icehouse/2014.1.3/+download/keystone-2014.1.3.tar.gz~~
 
 `wget https://github.com/openstack/keystone/archive/10.0.0.tar.gz`
 
