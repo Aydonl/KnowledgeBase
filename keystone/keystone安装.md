@@ -1,7 +1,7 @@
 #keystone安装
 
 ##环境
->centos7.2
+> centos7.2
 
 ###下载软件包
 
