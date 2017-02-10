@@ -1,0 +1,2 @@
+yum install net-snmp
+vi /etc/snmp/snmpd.conf

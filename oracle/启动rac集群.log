@@ -1,0 +1,3 @@
+启动rac集群
+
+[root@node1 ~]# /u01/app/11.2.0/grid/bin/crsctl start cluster -all

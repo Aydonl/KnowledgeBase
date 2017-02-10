@@ -1,0 +1,28 @@
+Docker 镜像管理
+
+导出镜像
+[root@docker ~]# docker images
+REPOSITORY                       TAG                 IMAGE ID            CREATED             SIZE
+192.168.66.229:5000/alpine       3.4                 baa5d63471ea        5 weeks ago         4.799 MB
+hub.c.163.com/library/alpine     3.4                 baa5d63471ea        5 weeks ago         4.799 MB
+hub.c.163.com/library/registry   latest              0bb8b1006103        10 weeks ago        33.27 MB
+
+
+##
+docker save -o alpine-3.4.tar 192.168.66.229:5000/alpine:3.4
+
+导入镜像
+##
+docker load --input alpine-3.4.tar
+
+查看制作失败的镜像
+
+docker images -q -f dangling=true
+
+
+
+JAVA_VERSION=8 \
+JAVA_UPDATE=112 \
+JAVA_BUILD=15 \
+wget --header "Cookie: oraclelicense=accept-securebackup-cookie;" \
+"http://download.oracle.com/otn-pub/java/jdk/8u112-b15/jdk-8u112-linux-x64.tar.gz"

@@ -1,0 +1,117 @@
+iscsi 配置
+
+系统：centos6
+
+yum -y install scsi-target-utils
+
+4.1 安装tgt
+
+CentOS 自带了scsi-target-utils 软件，我们使用该软件进行target设置。
+
+# yum -y install scsi-target-utils
+
+4.2 配置tgt
+
+tgt的主配置文件为/etc/tgt/targets.conf，下面我们来设置改文件。
+
+在该文件最后新增以下设置：
+
+复制代码
+<target iqn.2014-07.dev.iscsi-target:iscsidisk> 
+    backing-store /srv/iscsi/disk1.img 
+    backing-store /dev/sdb1 
+    backing-store /dev/vg0/lv1 
+    backing-store /dev/sdd 
+</target>
+复制代码
+说明：
+
+iqn = iSCSI Qualified Name
+
+iSCSI target的名称规则如下：
+
+iqn.2014-07.dev.iscsi-target:iscsidisk
+
+iqn.年份-月份.域名反写.设备识别
+
+每个在同一个target上的backing-store 称为逻辑单元号（Logical Unit Number，LUN），这个实验中有4个LUN。
+
+其他高级设置如initiator-address、incominguser，大家自行查资料。
+
+4.3 启动iSCSI target
+
+# /etc/init.d/tgtd start
+
+# chkconfig tgtd on
+
+# netstat -tulnp|grep tgt
+
+4.4 查看iSCSI target
+
+# tgt-admin –show
+
+客户端配置
+配置iSCSI Initiator
+
+5.1 安装initiator
+
+# yum -y install iscsi-initiator-utils
+
+5.2 设置开机启动
+
+# chkconfig iscsid on
+
+# chkconfig iscsi on
+
+5.3 配置文档
+
+initiator的配置文档位于/etc/iscsi/，该目录下有两个文件，initiatorname.iscsi 和iscsid.conf，
+
+其中iscsid.conf 是其配置文件，initiatorname.iscsi 是标记了initiator的名称，它的默认名称是InitiatorName=iqn.1994-05.com.redhat:b45be5af6021，我们可以根据实际情况进行更改，比较好区分，这里我们修改为InitiatorName=iqn.2014-07.dev.iscsi-initiator:initiator。
+
+8
+
+因为在target里面，我们并没有设置访问限制，所以iscsid.conf 文件并不需要修改。
+
+5.4 侦测target
+
+如果我们事先不知道目标主机的target名称，我们就需要进行侦测，下面来讲解。
+
+# iscsiadm -m discovery -t sendtargets -p 192.168.1.21
+
+9
+
+说明：
+
+-m discovery　　//侦测target
+-t sendtargets　　//通过iscsi协议
+-p IP:port　　//指定target的IP和port，不写port的话，默认为3260
+5.5 查看nodes
+
+iscsiadm 侦测到的结果会写入/var/lib/iscsi/nodes/ 中，因此只需启动/etc/init.d/iscsi 就能够在下次开机时，自动连接到正确的target了。
+
+# ll -R /var/lib/iscsi/nodes/
+
+10
+
+侦测信息都写入了/var/lib/iscsi/nodes/iqn.2014-07.dev.iscsi-target:iscsidisk/192.168.1.21,3260,1/default 文件中了。
+
+5.6 连接target
+
+查看目前系统上面所有的target
+
+# iscsiadm -m node
+
+登录target
+
+# iscsiadm -m node -T iqn.2014-07.dev.iscsi-target:iscsidisk -login
+
+11
+
+5.7 查看磁盘情况
+
+# fdisk –l
+
+12
+
+可以看到，initiator 上面多了四块硬盘，大小和target上的LUN一致。这时你就可以像使用本地磁盘一样使用这些iSCSI设备了，下面我们来测试。

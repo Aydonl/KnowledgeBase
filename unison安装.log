@@ -1,0 +1,72 @@
+unison安装
+
+1、download 
+	wget http://caml.inria.fr/pub/distrib/ocaml-4.02/ocaml-4.02.1.tar.gz
+	wget http://www.seas.upenn.edu/~bcpierce/unison//download/releases/stable/unison-2.48.3.tar.gz
+2、编译安装ocaml
+tar xf ocaml-4.02.1.tar.gz
+cd ocaml-4.02.1
+./configure
+make world opt
+make install
+
+3、编译安装unison
+yum install ctags-etags -y
+tar xf unison-2.48.3.tar.gz
+cd unison-2.48.3
+make UISTYLE=text THREADS=true
+cp unison /bin/
+
+
+4、安装 inotify
+wget http://github.com/downloads/rvoicilas/inotify-tools/inotify-tools-3.14.tar.gz
+tar xf inotify-tools-3.14.tar.gz 
+cd inotify-tools-3.14
+./configure
+make && make install
+
+
+--unison 配置文件
+-- .unison/www.prf
+root =  /phpstudy/www
+root = ssh://root@192.168.140.111//phpstudy/www
+batch = true
+owner = true
+group = true
+perms = -1
+silent = true
+times = true
+fastcheck = false
+rsync = false
+sshargs = -C
+xferbycopying = true
+confirmbigdel = false
+ignore = Name *.LOG
+ignore = Name *.tmp
+ignore = Name *.log
+ignore = Name *.txt
+ignore = Path data/cache
+ignore = Path data/session
+ignore = Path data/log
+ignore = Path data/token_json
+log = true
+logfile = /root/.unison/www.log
+
+
+
+
+--unison+inotify 同步脚本
+-- tongbu.sh
+#!/bin/bash
+#
+echo 30000000 > /proc/sys/fs/inotify/max_user_watches
+src='/home/ftp/1520/sugemall-20150430-upV/'
+
+/usr/local/bin/inotifywait -mrq --timefmt '%y/%d/%m %H:%M' --format '%T %w%f%e' -e close_write,delete,create,attrib $src \
+| while read files;do
+  /bin/unison www
+done
+
+
+--unison ignore 用法
+unison -ignore "Path data/cache" -ignore "Path data/session" -owner -group -times /phpstudy/www ssh://root@192.168.140.111//phpstudy/www

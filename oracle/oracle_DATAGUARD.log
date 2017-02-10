@@ -1,0 +1,7 @@
+DATAGUARD
+错误
+ORA-01153: an incompatible media recovery is active
+
+1、alter database recover managed standby database cancel;
+2、备库上启用日志应用
+recover database managed standby database using current logfile disconnect;

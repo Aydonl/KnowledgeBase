@@ -1,0 +1,41 @@
+Dnsmasq之dhcp配置(mac-ip绑定配置)
+
+软件下载
+http://www.thekelleys.org.uk/dnsmasq/release-candidates/dnsmasq-2.76rc2.tar.xz
+
+yum install gcc make xz
+
+tar xf dnsmasq-2.76rc2.tar.xz && \
+cd dnsmasq-2.76rc2 && \
+make && make install
+
+
+vi /etc/dnsmasq.conf
+--dhcp-host in main config file
+port=0
+#listen-address=172.16.2.41
+user=root
+interface=eth1
+except-interface=lo
+domain=aydon
+dhcp-range=172.16.2.50,static,255.255.255.0,infinite
+dhcp-host=11:22:33:44:55:66,172.16.2.50
+dhcp-option = option:router, 172.16.2.1
+
+
+
+vi /etc/dnsmasq.conf
+--dhcp-host not in main config file
+port=0
+#listen-address=172.16.2.41
+user=root
+interface=eth1
+except-interface=lo
+domain=aydon
+dhcp-range=172.16.2.50,static,255.255.255.0,infinite
+dhcp-hostsfile=/etc/dnsmasq.conf.d/dhcp-host
+dhcp-option = option:router, 172.16.2.1
+
+mkdir /etc/dnsmasq.conf.d/
+vi /etc/dnsmasq.conf.d/dhcp-host
+dhcp-host=11:22:33:44:55:66,172.16.2.50

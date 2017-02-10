@@ -1,0 +1,59 @@
+ceph 常用命令
+ceph --admin-daemon /var/run/ceph/ceph-mon.cs210-2.asok config show 
+
+
+ceph tell osd.* injectargs '--osd_recovery_threads 2'
+
+
+ceph tell osd.* injectargs '--osd_recovery_max_chunk 167216'
+
+
+
+
+osd_recovery_threads
+osd_recovery_op_priority
+osd_client_op_priority
+osd_recovery_max_active
+osd_recovery_num_single_start
+
+
+
+"osd_recovery_threads": "1",
+"osd_recovery_max_active": "15",
+"osd_client_op_priority": "63",
+"osd_recovery_op_priority": "10",
+
+
+--
+ceph osd pool set newcachepool crush_ruleset 2
+
+
+--查看pool类型
+ceph osd dump |grep pool
+
+--
+要获取集群的 CRUSH 图，执行命令：
+
+ceph osd getcrushmap -o {compiled-crushmap-filename}
+Ceph 将把 CRUSH 输出（ -o ）到你指定的文件，由于 CRUSH 图是已编译的，所以编辑前必须先反编译。
+
+反编译 CRUSH 图
+
+要反编译 CRUSH 图，执行命令：
+
+crushtool -d {compiled-crushmap-filename} -o {decompiled-crushmap-filename}
+Ceph 将反编译（ -d ）二进制 CRUSH 图，且输出（ -o ）到你指定的文件。
+
+编译 CRUSH 图
+
+要编译 CRUSH 图，执行命令：
+
+crushtool -c {decompiled-crush-map-filename} -o {compiled-crush-map-filename}
+Ceph 将把已编译的 CRUSH 图保存到你指定的文件。
+
+注入 CRUSH 图
+
+要把 CRUSH 图应用到集群，执行命令：
+
+ceph osd setcrushmap -i  {compiled-crushmap-filename}
+Ceph 将把你指定的已编译 CRUSH 图输入到集群。

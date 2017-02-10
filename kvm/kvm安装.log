@@ -1,0 +1,30 @@
+kvm安装
+
+yum install qemu-kvm qemu-img virt-manager libvirt libvirt-python libvirt-client virt-install virt-viewer bridge-utils -y
+
+vi /etc/libvirt/qemu.conf 
+systemctl restart libvirtd
+ss -ntlp
+vi /etc/sysconfig/libvirt
+vi /etc/sysconfig/libvirtd 
+systemctl restart libvirtd
+ss -ntlp
+echo '*    hard     nofile     131072' >> /etc/security/limits.conf
+echo '*    hard     noproc     131072' >> /etc/security/limits.conf
+echo 'ulimit -n 131072' >> /etc/profile && ulimit -n 131072
+echo 'vm.swappiness = 1' >> /etc/sysctl.conf
+sysctl -p
+    echo 'net.ipv6.conf.all.disable_ipv6=1' >> /etc/sysctl.conf
+    echo 'NETWORKING_IPV6=no' >> /etc/sysconfig/network
+    sed -i 's/IPV6INIT=yes/IPV6INIT=no/g' /etc/sysconfig/network-scripts/ifcfg-e*
+    systemctl disable ip6tables
+systemctl stop firewalld && systemctl disable firewalld
+yum -y install iptables-services
+systemctl stop iptables && systemctl disable iptables
+echo 0 > /proc/sys/kernel/numa_balancing
+echo 0 > /sys/kernel/mm/ksm/merge_across_nodes
+brctl show
+brctl list
+brctl show virbr0
+iptables -nvL --line
+systemctl restart libvirtd

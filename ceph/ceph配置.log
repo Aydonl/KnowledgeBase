@@ -1,0 +1,272 @@
+[global]
+fsid = f51b16f9-e59c-4d88-8c74-d164c9eb59be
+mon initial members = control
+mon host = 192.168.100.148:6789
+cluster network = 192.168.0.0/16
+public network = 172.172.0.0/16
+auth cluster required = cephx
+auth service required = cephx
+auth client required = cephx
+osd journal size = 5120
+filestore xattr use omap = true
+osd pool default size = 3
+osd pool default min size = 2
+osd pool default pg num = 2048
+osd pool default pgp num = 2048
+osd crush chooseleaf type = 0
+max open files = 131072
+mon osd full ratio = .80
+mon osd nearfull ratio = .70
+ms_type = async(no)
+ms_async_op_threads = 5(no)
+ms_dispatch_throttle_bytes = 104857600000
+
+[client]
+rbd cache = true
+rbd cache writethrough until flush = true
+#rbd cache size = 134217728
+#rbd cache max dirty = 125829120
+#client cache size = 30720
+#client readahead min = 512000
+admin socket = /var/run/ceph/$cluster-$type.$id.$pid.$cctid.asok
+
+[mon]
+mon data = /data/admin/$name
+
+[mon.control]
+host = control
+mon addr = 192.168.100.148:6789
+
+[mon.compute-149]
+host = compute-149
+mon addr = 192.168.100.149:6789
+
+[mon.compute-10]
+host = compute-10
+mon addr = 192.168.100.10:6789
+
+[mon.compute-5]
+host = compute-5
+mon addr = 192.168.100.5:6789
+
+[osd]
+osd journal size = 10000
+osd journal = /data/admin/journal/$name/journal
+filestore sync flush = true
+osd mkfs type = xfs
+osd data = /data/$name
+osd op threads = 4
+osd disk threads = 2
+filestore op threads = 4
+osd crush update on start = false
+osd max backfills = 10
+osd backfill scan min = 128
+osd backfile scan max = 1024
+osd backfill full ratio = 0.4
+osd recovery max active = 100
+osd recovery max chunk = 1048576
+osd max write size = 50
+osd recovery threads = 5
+filestore fiemap = true
+filestore_fd_cache_size = 204800
+filestore_omap_header_cache_size = 204800
+filestore_wbthrottle_xfs_bytes_start_flusher = 500000000
+filestore_wbthrottle_xfs_indoes_start_flusher = 500
+filestore_wbthrottle_xfs_indoes_hard_limit = 500000
+filestore_wbthrottle_xfs_ios_start_flusher = 50000
+filestore_wbthrottle_xfs_bytes_hard_limit = 500000000
+filestore_wbthrottle_xfs_ios_hard_limit = 500000
+filestore_queue_max_ops = 5000
+filestore_queue_max_bytes = 1024000000
+filestore_queue_committing_max_ops = 50000
+journal_queue_max_ops = 500000
+journal_queue_max_bytes = 10240000000
+filestore min sync interval = 0.5
+filestore max sync interval = 10
+filestore_fd_cache_random = true
+
+[osd.0]
+host = compute-5
+devs = /dev/mvg0/data5-00
+
+[osd.1]
+host = compute-5
+devs = /dev/mvg0/data5-01
+
+[osd.2]
+host = compute-5
+devs = /dev/mvg0/data5-02
+
+[osd.3]
+host = compute-10
+devs = /dev/mvg0/data10-00
+
+[osd.4]
+host = compute-10
+devs = /dev/mvg0/data10-01
+
+[osd.5]
+host = control
+devs = /dev/mvg0/data148
+
+[osd.6]
+host = compute-149
+devs = /dev/mvg0/data149-00
+
+[osd.7]
+host = compute-149
+devs = /dev/mvg0/data149-01
+
+
+/etc/fstab
+
+UUID="164ee8f4-ff04-4c86-9bbe-1d9afecaf59b"	/data/osd.0	xfs	rw,noatime,nobarrier,inode64,logbsize=256k	0	0
+UUID="5bb30ffd-db21-40a9-a7e8-ea8329bb8d32"	/data/osd.1	xfs	rw,noatime,nobarrier,inode64,logbsize=256k	0	0
+UUID="b18c7be8-0b71-4788-9871-034072f051f5"	/data/osd.2	xfs	rw,noatime,nobarrier,inode64,logbsize=256k	0	0
+/dev/mapper/mvg0-mon5	/data/admin	xfs	rw,noatime,nobarrier,inode64,logbsize=256k	0	0
+
+UUID="a0c7c897-9d98-4236-87b5-9441e1c49aa5" /data/osd.3	xfs	rw,noatime,nobarrier,inode64,logbsize=256k	0	0
+UUID="d067eb3a-3038-4ac5-a9be-3690c44daff8" /data/osd.4	xfs	rw,noatime,nobarrier,inode64,logbsize=256k	0	0
+/dev/mapper/mvg0-mon10  /data/admin	xfs	rw,noatime,nobarrier,inode64,logbsize=256k	0	0
+
+UUID="72cbfbe5-8f39-43a4-bedc-632e2e717b29" /data/osd.5	xfs	rw,noatime,nobarrier,inode64,logbsize=256k	0	0
+/dev/mapper/mvg0-mon148 /data/admin	xfs	rw,noatime,nobarrier,inode64,logbsize=256k	0	0
+
+
+UUID="0f430356-faaa-4abc-8bbe-16e0c05192de"	/data/osd.6	xfs	rw,noatime,nobarrier,inode64,logbsize=256k	0	0
+UUID="3668a992-6f12-41d4-b89d-3ff75cdf735a" /data/osd.7	xfs	rw,noatime,nobarrier,inode64,logbsize=256k	0	0
+/dev/mapper/mvg0-mon149 /data/admin	xfs	rw,noatime,nobarrier,inode64,logbsize=256k	0	0
+
+
+
+--
+ceph-authtool --create-keyring /opt/ceph.mon.keyring --gen-key -n mon. --cap mon 'allow *'
+ceph-authtool --create-keyring /etc/ceph/ceph.client.admin.keyring --gen-key -n client.admin --set-uid=0 --cap mon 'allow *' --cap osd 'allow *' --cap mds 'allow'
+ceph-authtool /opt/ceph.mon.keyring --import-keyring /etc/ceph/ceph.client.admin.keyring
+monmaptool --create --add compute-5 192.168.100.5 --fsid f51b16f9-e59c-4d88-8c74-d164c9eb59be /opt/monmap
+ceph-mon --mkfs -i compute-5 --monmap /opt/monmap --keyring /opt/ceph.mon.keyring
+----add mon
+ceph auth get mon. -o /opt/mon
+ceph mon getmap -o /opt/map
+ceph-mon -i compute-149 --mkfs --monmap /opt/map --keyring /opt/mon
+ceph mon add compute-149 192.168.100.149:6789
+
+ceph auth get mon. -o /opt/mon
+ceph mon getmap -o /opt/map
+ceph-mon -i compute-10 --mkfs --monmap /opt/map --keyring /opt/mon
+ceph mon add compute-10 192.168.100.10:6789
+
+ceph auth get mon. -o /opt/mon
+ceph mon getmap -o /opt/map
+ceph-mon -i control --mkfs --monmap /opt/map --keyring /opt/mon
+ceph mon add control 192.168.100.148:6789
+
+--service ceph -a start mon
+
+192.168.100.5
+mkdir -pv /data/admin/journal/osd.{0..2}
+ceph osd create 52b4987f-7aca-438f-9ec4-f56ed4e468fa
+ceph osd create 422c9ae7-c6f1-4b55-98ae-0e81bbbdc11f
+ceph osd create 79d1425f-ed2d-4ab1-9434-3c48f318f90f
+ceph-osd -i 0 --mkfs --mkkey --osd-uuid 52b4987f-7aca-438f-9ec4-f56ed4e468fa
+ceph-osd -i 1 --mkfs --mkkey --osd-uuid 422c9ae7-c6f1-4b55-98ae-0e81bbbdc11f
+ceph-osd -i 2 --mkfs --mkkey --osd-uuid 79d1425f-ed2d-4ab1-9434-3c48f318f90f
+ceph osd crush add-bucket compute-5 host
+ceph osd crush move compute-5 root=default
+for i in {0..2} ; do ceph auth add osd.$i osd 'allow *' mon 'allow profile osd ' -i /data/osd."$i"/keyring &&\
+ceph osd crush add osd."$i" 2.0 host=compute-5  ; done
+
+mkdir -pv /data/admin/journal/osd.{3..4}
+ceph osd create feae0e19-b950-4a9f-89e9-f0719b17d599
+ceph osd create f5f8d8b8-f57b-4e89-bed9-5ea5e42438a0
+ceph-osd -i 3 --mkfs --mkkey --osd-uuid feae0e19-b950-4a9f-89e9-f0719b17d599
+ceph-osd -i 4 --mkfs --mkkey --osd-uuid f5f8d8b8-f57b-4e89-bed9-5ea5e42438a0
+ceph osd crush add-bucket compute-10 host
+ceph osd crush move compute-10 root=default
+for i in {3..4} ; do ceph auth add osd.$i osd 'allow *' mon 'allow profile osd ' -i /data/osd."$i"/keyring &&\
+ceph osd crush add osd."$i" 2.0 host=compute-10  ; done
+
+
+mkdir -pv /data/admin/journal/osd.5
+ceph osd create b787c1ff-23d5-4a08-9e6a-241d1973bd89
+ceph-osd -i 5 --mkfs --mkkey --osd-uuid b787c1ff-23d5-4a08-9e6a-241d1973bd89
+ceph osd crush add-bucket control host
+ceph osd crush move control root=default
+for i in 5 ; do ceph auth add osd.$i osd 'allow *' mon 'allow profile osd ' -i /data/osd."$i"/keyring &&\
+ceph osd crush add osd."$i" 2.0 host=control ; done
+
+mkdir -pv /data/admin/journal/osd.{6..7}
+ceph osd create a3bbabe9-840b-412c-9ed1-d8cd3f412ee0
+ceph osd create f7d32788-4b9a-41f3-a7b4-38d63cfee918
+ceph-osd -i 6 --mkfs --mkkey --osd-uuid a3bbabe9-840b-412c-9ed1-d8cd3f412ee0
+ceph-osd -i 7 --mkfs --mkkey --osd-uuid f7d32788-4b9a-41f3-a7b4-38d63cfee918
+ceph osd crush add-bucket compute-149 host
+ceph osd crush move compute-149 root=default
+for i in {6..7} ; do ceph auth add osd.$i osd 'allow *' mon 'allow profile osd ' -i /data/osd."$i"/keyring &&\
+ceph osd crush add osd."$i" 2.0 host=compute-149 ; done
+----------------------------------------------------
+ceph osd erasure-code-profile set code-rule ruleset-failure-domain=osd k=6 m=2
+ceph osd erasure-code-profile get code-rule    
+ceph osd pool create volumes 128 128 erasure code-rule
+ceph osd pool create cachepool 128 128
+ceph osd tier add volumes cachepool
+ceph osd tier set-overlay volumes cachepool
+ceph osd tier cache-mode cachepool writeback
+ceph osd pool set cachepool cache_target_dirty_ratio 0.4
+ceph osd pool set cachepool cache_target_full_ratio 0.8
+ceph osd pool set cachepool hit_set_type bloom
+ceph osd pool set cachepool hit_set_count 1
+ceph osd pool set cachepool hit_set_period 3600
+ceph osd pool set cachepool target_max_bytes 10000000000
+ceph osd pool set cachepool cache_min_flush_age 600
+ceph osd pool set cachepool cache_min_evict_age 1800
+
+
+ceph osd pool create images 128 128
+ceph osd pool create backups 128 128
+
+
+
+ceph auth get-or-create client.images mon 'allow r' osd 'allow class-read object_prefix rbd_children, allow rwx pool=images'
+ceph auth get-or-create client.cachepool mon 'allow r' osd 'allow class-read object_prefix rbd_children, allow rwx pool=cachepool, allow rwx pool=volumes, allow rx pool=images'
+ceph auth get-or-create client.cinder-backup mon 'allow r' osd 'allow class-read object_prefix rbd_children, allow rwx pool=backups' > /etc/cinder/ceph.keyring
+
+
+
+
+
+<secret ephemeral='no' private='no'>
+  <uuid>7aab4ca0-e4ea-4328-9aeb-19712612fca8</uuid>
+  <usage type='ceph'>
+    <name>client.volumes secret</name>
+  </usage>
+</secret>
+
+libvirt_live_migration_flag="VIR_MIGRATE_UNDEFINE_SOURCE,VIR_MIGRATE_PEER2PEER,VIR_MIGRATE_LIVE,VIR_MIGRATE_PERSIST_DEST"
+
+
+virsh secret-set-value --secret de03c6d3-fb1c-4f1a-ad5d-97fd55021cbf --base64 AQD7TX1UUF5UGxAA9b1TRUEq1ZYt0l/9G26oZA==
+
+virsh secret-set-value --secret 7aab4ca0-e4ea-4328-9aeb-19712612fca8 --base64 AQBVen5UiP6NHRAAhhN6pAHhSRN/f9sHKZEiHg==
+
+196.202
+
+
+
+
+
+
+二、CEPH编译安装以及配置文件详述
+系统环境准备：CentOS 7.0x86_64最小化安装
+1、装一些必须的软件包
+yum -y install screen bzip2 make automake autoconf boost-devel fuse-devel gcc-c++ libtool libuuid-devel libblkid-devel keyutils-libs-devel cryptopp-devel fcgi-devel libcurl-devel expat-devel gperftools-devel libedit-devel libatomic_ops-devel snappy-devel leveldb-devel libaio-devel xfsprogs-devel git libudev-devel
+
+
+2、Download CEPH.tbz from CEPH.COM
+wget http://ceph.com/download/ceph-0.80.7.tar.bz2
+CXXFLAGS="-g -O2"
+./configure --prefix=/usr --sbindir=/sbin \
+--localstatedir=/var --sysconfdir=/etc && make 
+
+
+make install

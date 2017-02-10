@@ -1,0 +1,35 @@
+samba配置
+service iptables stop
+chkconfig iptables off
+sed -i 's/SELINUX=enforcing/SELINUX=disabled/' /etc/selinux/config
+yum install samba
+useradd -M -s /sbin/nologin admin
+useradd -M -s /sbin/nologin -g admin user
+mkdir /file
+chown -R admin.admin /file
+chmod o+t /file
+smbpasswd -a admin
+smbpasswd -a user
+
+----
+[Share]
+     comment = This is a directory of Public.
+     path = /file/
+     public = no
+     admin users = admin
+     valid users = @admin
+     writable = yes
+     create mask = 1750
+     directory mask = 1750
+
+
+----
+windows samba 更换账号
+net use \\192.168.66.179\share /del
+
+linux 登录 samba
+smbclient //192.168.66.179/share -U admin
+
+
+--
+imQNUTN0BxS

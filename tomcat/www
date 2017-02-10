@@ -1,0 +1,63 @@
+#!/bin/bash
+# chkconfig: 2345 96 14
+# description:The apache Tomcat servlet/JSP container.
+
+. /etc/init.d/functions
+. /etc/profile
+
+myroot=/usr/local/www_apache
+prog=www
+exec="$myroot/bin/startup.sh"
+stopexec="$myroot/bin/shutdown.sh"
+lockfile=/var/lock/subsys/$prog
+
+prostat() {
+  ps -u $prog |grep java >/dev/null
+  if [ $? -eq 0 ];then
+    ps -u $prog |awk '/java/ {print $NF" (pid \033[31m"$1"\033[0m) is running"}'
+    exit 5
+  fi
+}
+
+start() {
+    prostat
+    [ -x $exec ] || exit 5
+    echo -n $"Starting $prog: "
+    daemon --user $prog "$exec &>/dev/null"
+    retval=$?
+    echo
+    [ $retval -eq 0 ] && touch $lockfile
+    return $retval
+}
+stop() {
+    echo -n $"Stoping $prog: "
+    daemon --user $prog "$stopexec &>/dev/null"
+    retval=$?
+    echo
+    [ $retval -eq 0 ] && rm -f $lockfile
+    return $retval
+}
+status() {
+  ps -u $prog |grep java >/dev/null
+  if [ $? -eq 0 ];then
+    ps -u $prog |awk '/java/ {print $NF" (pid \033[31m"$1"\033[0m) is running"}'
+  else
+    echo "$prog is not running"
+  fi
+}
+
+case "$1" in
+  start)
+    start
+  ;;
+  stop)
+    stop
+  ;;
+  status)
+    status
+  ;;
+  *)
+    echo "Usage:$0 start|stop|status"
+    ;;
+esac
+exit 0

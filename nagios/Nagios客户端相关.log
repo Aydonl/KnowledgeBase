@@ -1,0 +1,48 @@
+Nagios服务端安装
+
+
+yum install httpd php php-gd gcc make automake unzip -y
+
+https://assets.nagios.com/downloads/nagioscore/releases/nagios-4.2.4.tar.gz#_ga=1.4922867.1137938405.1485228523
+
+
+useradd -M -g apache -s /sbin/nologin nagios
+groupadd nagios
+usermod -G nagios nagios
+
+./configure --prefix=/usr/local/nagios && \
+make all  && \
+make install  && \
+make install-init  && \
+make install-commandmode  && \
+make install-config  && \
+make install-webconf
+
+
+Nagios客户端安装
+yum install yum-plugin-downloadonly -y && \
+mkdir /root/rpm && \
+yum install \
+nagios-plugins-nrpe \
+nagios-plugins-disk \
+nrpe \
+nagios-plugins-load \
+nagios-plugins-procs \
+--downloadonly --downloaddir=/root/rpm
+
+
+
+
+#检测外网
+command[check_wan]=/usr/lib64/nagios/plugins/check_ping -H www.baidu.com -w 300.0,20% -c 500.0,50% -p 4 -t 10
+#检测nfs挂载
+command[check_share_mount]=/usr/lib64/nagios/plugins/check_nfs_mount.py
+#检测挂载点剩余空间
+command[check_disk_data]=/usr/lib64/nagios/plugins/check_disk -w 10% -c 5% -u GB -M /share
+
+/etc/init.d/nrpe start
+
+chkconfig nrpe on
+
+
+iptables -I INPUT -p tcp --dport 5666 -j ACCEPT

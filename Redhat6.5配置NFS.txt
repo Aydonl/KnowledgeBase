@@ -1,0 +1,59 @@
+RedHat 6.5 64bit系统上设置NFS的过程
+环境介绍：
+NFS服务端：172.17.16.15
+NFS客户端网段：172.0.0.0/8
+
+1，配置NFS服务端
+
+[root@os ~]# yum install nfs-utils rpcbind
+假设服务端要挂载的目录是/mnt/share，设置如下
+
+[root@os ~]# vi /etc/exports
+/mnt/share       172.0.0.0/8(rw,sync)
+
+
+172.0.0.0/8 
+以下写法也是正确的
+/mnt/share       172.0.0.0/8(ro,no_root_squash)
+/mnt/share       *(rw,sync,no_root_squash)
+
+参数说明：
+rw：read-write，可读写；
+ro：read-only，只读；
+sync：同步写入（文件同时写入硬盘和内存），适用在通信比较频繁且实时性比较高的场合
+async：异步写入（文件先写入内存，稍候再写入硬盘），性能较好（速度快），适合超大或者超多文件的写入，但有数据丢失的风险，比如突然断电等情况；
+注意：除非特別有需要，否则不建议使用 async。如果沒有指定 sync 或 async，NFS 服务器在启动的时候会印出警告信息。
+no_root_squash：NFS客户端连接服务端时如果使用的是 root 的话，那么对服务端分享的目录也使用 root 权限。不安全！
+root_squash：把客户端 root 身份的 UID/GID (0/0) 对应到服务端的 nobody 用户去，即服务端使用 nobody 用户来操作共享目录；
+all_squash：不论NFS客户端连接服务端时使用什么用户，对服务端分享的目录来说都是拥有匿名用户权限；
+anonuid：匿名用户的UID值，通常是nobody或nfsnobody，可以在此处自行设定；
+anongid：匿名用户的GID值。
+
+设置开机自启动
+
+[root@os ~]# /etc/init.d/rpcbind start && chkconfig --level 2345 rpcbind on
+[root@os ~]# /etc/init.d/nfs start  && chkconfig --level 2345 nfs on
+
+2，配置NFS客户端
+
+客户端也需要安装以下两个软件包，
+
+[root@os ~]# yum install nfs-utils rpcbind
+客户端不需要启动rpcbind和nfs服务即可挂载。
+
+[root@os ~]# showmount -e 172.17.16.15  #查看服务端共享的目录
+Export list for 172.17.16.15:
+/mnt/share 172.0.0.0/8
+注意：如果这里提示clnt_create: RPC: Program not registered，只要在服务端运行一下rpc.mountd即可。
+
+挂载到本地
+
+[root@os ~]# mount -t nfs 172.17.16.15:/mnt/share /mnt/share -o nolock 
+也可以写成   mount -t nfs 172.17.16.15:/mnt/share /mnt/share -o nolock -o proto=tcp
+NFS默认是用UDP协议，也可以加上-o proto=tcp换成TCP协议。
+
+设置开机自动挂载
+
+[root@os ~]# vi /etc/fstab
+172.17.16.15:/mnt/share    /mnt/share  nfs  defaults   1 2
+[root@os ~]# mount -a 测试挂载

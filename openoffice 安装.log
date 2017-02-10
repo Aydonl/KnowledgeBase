@@ -1,0 +1,16 @@
+openoffice 安装
+
+wget http://jaist.dl.sourceforge.net/project/openofficeorg.mirror/4.1.2/binaries/zh-CN/Apache_OpenOffice_4.1.2_Linux_x86-64_install-rpm_zh-CN.tar.gz
+
+tar xf Apache_OpenOffice_4.1.2_Linux_x86-64_install-rpm_zh-CN.tar.gz 
+
+cd zh-CN/RPMS/
+rpm -ivh *.rpm
+cd desktop-integration/
+rpm -ivh openoffice4.1.2-redhat-menus-4.1.2-9782.noarch.rpm
+
+yum install libXext-devel libXext -y
+yum install libXt libXt-devel screen -y
+
+screen
+soffice -headless -accept="socket,host=127.0.0.1,port=8100;urp;" -nofirststartwizard

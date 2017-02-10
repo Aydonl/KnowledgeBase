@@ -1,0 +1,114 @@
+nagios的安装
+#配置yum代理
+sed -i '12aproxy=http://10.154.88.88:3128' /etc/yum.conf
+sed -i 's/\(SELINUX=\).*/\1disabled/' /etc/selinux/config
+#解决依赖关系
+yum install gcc make automake httpd php ntpdate -y
+useradd -M nagios && usermod -G nagios apache 
+wget http://softlayer-dal.dl.sourceforge.net/project/nagios/nagios-4.x/nagios-4.0.8/nagios-4.0.8.tar.gz
+tar xf nagios-4.0.8.tar.gz 
+cd nagios-4.0.8
+./configure --prefix=/usr/local/nagios
+make all && \
+make install && \
+make install-init && \
+make install-commandmode && \
+make install-config && \
+make install-webconf
+
+
+安装nagios-plugins:
+wget http://nagios-plugins.org/download/nagios-plugins-2.0.3.tar.gz
+tar xf nagios-plugins-2.0.3.tar.gz
+cd nagios-plugins-2.0.3
+./configure --prefix=/usr/local/nagios/
+make && \
+make install
+
+
+
+#配置httpd
+1、配置用户名、密码
+htpasswd -c /usr/local/nagios/etc/htpasswd.users nagiosadmin
+
+service httpd restart  
+chkconfig httpd on   
+service nagios restart 
+chkconfig --add nagios 
+
+
+#安装nrpe
+yum install openssl-devel -y
+tar -zxvf nrpe-2.13.tar.gz && \
+cd nrpe-2.13 && \
+./configure && \
+make all && \
+make install-plugin && \
+make install-daemon && \
+make install-daemon-config && \
+echo $?
+
+
+
+--客户端配置
+
+
+
+#!/bin/bash
+
+rpm -qa |grep openssl-devel && \
+useradd -r -s /sbin/nologin -M nagios && \
+cd /root/nrpe/ && \
+tar xf nagios-plugins-2.0.3.tar.gz && \
+cd nagios-plugins-2.0.3 && \
+./configure --with-nagios-user=nagios --with-nagios-group=nagios && \
+make all && \
+make install  && \
+echo $? && \
+cd /root/nrpe/ && \
+tar -zxvf nrpe-2.13.tar.gz && \
+cd nrpe-2.13 && \
+./configure && \
+make all && \
+make install-plugin && \
+make install-daemon && \
+make install-daemon-config  && \
+echo $?
+
+cat >> /etc/init.d/nrpe << eof
+#!/bin/bash
+# chkconfig: 2345 88 12
+# description: NRPE DAEMON
+
+NRPE=/usr/local/nagios/bin/nrpe
+NRPECONF=/usr/local/nagios/etc/nrpe.cfg
+
+case "\$1" in
+	start)
+		echo -n "Starting NRPE daemon..."
+		\$NRPE -c \$NRPECONF -d
+		echo " done."
+		;;
+	stop)
+		echo -n "Stopping NRPE daemon..."
+		pkill -u nagios nrpe
+		echo " done."
+	;;
+	restart)
+		\$0 stop
+		sleep 2
+		\$0 start
+		;;
+	*)
+		echo "Usage: \$0 start|stop|restart"
+		;;
+	esac
+exit 0
+eof
+
+chmod +x /etc/init.d/nrpe
+
+sed -i 's@allowed_hosts=127.0.0.1@allowed_hosts=127.0.0.1,10.82.0.29@' /usr/local/nagios/etc/nrpe.cfg
+
+echo 'server_address=10.82.177.16' >> /usr/local/nagios/etc/nrpe.cfg
+echo 'command[check_all_disk]=/usr/local/nagios/libexec/check_disk -w 20% -c 10%' >> /usr/local/nagios/etc/nrpe.cfg

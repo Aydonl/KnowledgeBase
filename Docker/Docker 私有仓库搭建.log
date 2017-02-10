@@ -1,0 +1,27 @@
+Docker 私有仓库搭建
+环境：
+Docker version 1.10.3
+内核版本：4.4.19-1.el7.elrepo.x86_64
+
+下载registry镜像
+docker pull hub.c.163.com/library/registry:latest
+
+运行registry镜像
+
+docker run -d --net=none --name registry -e SETTINGS_FLAVOR=local -e SEARCH_BACKEND=sqlalchemy -v /var/lib/docker/registry:/var/lib/registry hub.c.163.com/library/registry:latest
+
+--修改docker配置文件
+/etc/sysconfig/docker
+
+OPTIONS='--selinux-enabled --log-driver=journald --insecure-registry 192.168.66.229:5000'
+
+
+
+List all repositories (effectively images):
+
+curl --cacert certs/registry-ca-cert.crt -X GET https://myregistry:5000/v2/_catalog
+> {"repositories":["redis","ubuntu"]}
+List all tags for a repository:
+
+curl --cacert certs/registry-ca-cert.crt -X GET https://myregistry:5000/v2/ubuntu/tags/list
+> {"name":"ubuntu","tags":["14.04"]}

@@ -1,0 +1,261 @@
+ceph配置
+http://ceph.com/download/ceph-0.80.10.tar.bz2
+
+yum install hdparm
+cp ceph-0.80.10/src/init-ceph /etc/init.d/ceph
+
+
+硬盘分区配置
+parted /dev/sdb mklabel gpt
+parted /dev/sdb mkpart primary 2048s 11G
+parted /dev/sdb mkpart primary 11G 100%
+mkfs.xfs -f -i size=2048 -l lazy-count=1,logdev=/dev/sdb1,size=1g -d agcount=4 /dev/sdb2
+
+添加osd
+uuidgen
+ceph osd create [{uuid}
+--mkdir /data/osd.{osd-number}
+mkdir /data/osd.1
+-- mount /dev/sdb2 /data/osd.{osd-number}
+mount -o rw,noatime,nobarrier,inode64,logbsize=256k,logdev=/dev/sdb1 /dev/sdb2 /data/osd.0
+-- Initialize the OSD data directory
+ceph-osd -i 0 --mkfs --mkkey --osd-uuid fe25f07e-bdd2-4f11-87eb-cd0e22f83d89
+--Register the OSD authentication key
+
+ceph auth add osd.1 osd 'allow *' mon 'allow profile osd ' -i /data/osd.1/keyring 
+
+--Add the OSD to the CRUSH ma
+ceph osd crush add osd.1 2.0 host=host2
+--
+ceph osd crush add-bucket host2 host
+ceph osd crush move host2 root=default
+
+--
+radosgw配置
+
+cp /opt/ceph-0.80.10/src/init-radosgw.sysv /etc/init.d/radosgw
+修改文件 --》 DEFAULT_USER='apache'
+
+/etc/yum.repo.d/ceph.repo
+[ceph-base]
+name=Ceph-$releasever - Base
+#mirrorlist=http://mirrorlist.centos.org/?release=$releasever&arch=$basearch&repo=os
+baseurl=http://download.ceph.com/ceph/firefly/rhel7/
+gpgcheck=0
+
+
+yum install httpd-2.2.22-1.ceph.el7 httpd-devel-2.2.22-1.ceph.el7
+
+
+#git clone https://github.com/ceph/mod_fastcgi.git
+cd mod_fastcgi/
+cp Makefile.AP2 Makefile
+find /usr -name 'special.mk'
+修改special.mk路径
+vi Makefile
+make
+echo $?
+make install
+echo $?
+
+vi /etc/httpd/conf.d/fast_cgi.conf
+
+User apache
+Group apache
+LoadModule fastcgi_module modules/mod_fastcgi.so
+FastCgiIpcDir /var/run/mod_fastcgi
+FastCgiWrapper Off
+FastCgiConfig -idle-timeout 30 -maxClassProcesses 10 -maxProcesses 1000
+
+
+pool.txt
+
+.rgw.buckets
+.rgw.buckets.extra
+.users
+.users.email
+.rgw
+.rgw.root
+.users.uid
+.rgw.control
+.rgw.gc
+.log
+.intent-log
+.usage
+.users.swift
+.rgw.buckets.index
+
+for i in `cat pool.txt`;do ceph osd pool create $i 128 128 replicated;done
+
+
+
+开启认证
+ceph-authtool --create-keyring /etc/ceph/ceph.client.radosgw.keyring
+chmod +r /etc/ceph/ceph.client.radosgw.keyring
+ceph-authtool /etc/ceph/ceph.client.radosgw.keyring -n client.radosgw.gateway --gen-key
+ceph-authtool -n client.radosgw.gateway --cap osd 'allow rwx' --cap mon 'allow rwx' /etc/ceph/ceph.client.radosgw.keyring
+ceph -k /etc/ceph/ceph.client.admin.keyring auth add client.radosgw.gateway -i /etc/ceph/ceph.client.radosgw.keyring
+
+--
+ceph-authtool --create-keyring /etc/ceph/keyring.client.radosgw.host2
+chmod +r /etc/ceph/keyring.client.radosgw.host2
+ceph-authtool /etc/ceph/keyring.client.radosgw.host2 -n client.radosgw.host2 --gen-key
+ceph-authtool -n client.radosgw.host2 --cap osd 'allow rwx' --cap mon 'allow rwx' /etc/ceph/keyring.client.radosgw.host2
+ceph -k /etc/ceph/ceph.client.admin.keyring auth add client.radosgw.host2 -i /etc/ceph/keyring.client.radosgw.host2
+
+
+
+7、CEPH的配置文件中添加如下配置段，参考
+[client.radosgw.host4]
+host = mg-160-2
+keyring = /etc/ceph/keyring.client.radosgw.host4
+rgw socket path = /tmp/ceph.radosgw.host4.fastcgi.sock
+log file = /var/log/radosgw/client.radosgw.host4.log
+
+host 必须为主机名，不是fqdn
+
+--
+rgw print continue = true
+rgw enable ops log = false
+rgw dns name = cs211-1-1
+rgw obj stripe size = 5242880
+--
+
+
+8、创建数据目录
+mkdir -p /var/lib/ceph/radosgw/ceph-radosgw.gateway
+
+
+解决sudo: sorry, you must have a tty to run sudo
+ 
+1. 编辑 /etc/sudoers
+ 
+  1）Defaults    requiretty，修改为 #Defaults    requiretty，表示不需要控制终端。
+  2）Defaults    requiretty，修改为 Defaults:nobody !requiretty，表示仅 nobody 用户不需要控制终端。
+ 
+
+
+9、创建gateway配置
+
+cat /var/www/html/s3gw.fcgi 
+#!/bin/sh
+exec /usr/bin/radosgw -c /etc/ceph/ceph.conf -n client.radosgw.gateway
+
+chmod +x s3gw.fcgi
+
+10、cat /etc/httpd/conf.d/rgw.conf 
+
+FastCgiExternalServer /var/www/html/s3gw.fcgi -socket /var/run/ceph/ceph.radosgw.gateway.fastcgi.sock
+
+
+<VirtualHost *:80>
+
+	ServerName cs210-1-1
+	ServerAdmin ycc@zzidc.com
+	DocumentRoot /var/www/html
+	RewriteEngine On
+	RewriteRule  ^/(.*) /s3gw.fcgi?%{QUERY_STRING} [E=HTTP_AUTHORIZATION:%{HTTP:Authorization},L]
+
+	<IfModule mod_fastcgi.c>
+   	<Directory /var/www/html>
+			Options +ExecCGI
+			AllowOverride All
+			SetHandler fastcgi-script
+			#Require all granted
+		        Order allow,deny
+                        Allow from all
+			AuthBasicAuthoritative Off
+		</Directory>
+	</IfModule>
+
+	AllowEncodedSlashes On
+	ErrorLog /var/log/httpd/error.log
+	CustomLog /var/log/httpd/access.log combined
+	ServerSignature Off
+
+</VirtualHost>
+
+
+
+radosgw-admin user create --uid=idc@zzidc.com --email=idc@zzidc.com --display-name=idc@zzidc.com
+
+{ "user": "aydon",
+          "access_key": "M7B950BG595N0IC7AIEB",
+          "secret_key": "u6HuhHx9MnaD0IiwAviMtuVgPpKRT0hX69KNqI0y"}],
+
+
+http://tool.kuaiyunds.com/tool/%E5%BF%AB%E4%BA%91%E5%AD%98%E5%82%A8%E6%89%B9%E9%87%8F%E4%B8%8A%E4%BC%A0%E5%B7%A5%E5%85%B7.zip
+
+
+conn = boto.connect_s3(
+        aws_access_key_id = access_key,
+        aws_secret_access_key = secret_key,
+        host = '192.168.100.181',
+        #is_secure=False,               # uncommmnt if you are not using ssl
+        calling_format = boto.s3.connection.OrdinaryCallingFormat(),
+        )
+
+
+
+----
+负载均衡配置
+yum install pcre-devel pcre openssl-devel libxml2-devel libxslt-devel gd-devel -y
+
+wget http://labs.frickle.com/files/ngx_cache_purge-2.3.tar.gz
+wget http://nginx.org/download/nginx-1.8.0.tar.gz
+
+
+./configure --prefix=/usr/share/nginx --sbin-path=/usr/sbin/nginx --conf-path=/etc/nginx/nginx.conf --error-log-path=/var/log/nginx/error.log --http-log-path=/var/log/nginx/access.log --http-client-body-temp-path=/var/lib/nginx/tmp/client_body --http-proxy-temp-path=/var/lib/nginx/tmp/proxy --pid-path=/run/nginx.pid --lock-path=/run/lock/subsys/nginx --user=nginx --group=nginx --with-file-aio --with-ipv6 --with-http_ssl_module --with-http_spdy_module --with-http_realip_module --with-http_addition_module --with-http_xslt_module --with-http_image_filter_module --with-http_sub_module --with-http_flv_module --with-http_mp4_module --with-http_gunzip_module --with-http_gzip_static_module --with-http_random_index_module --with-http_secure_link_module --with-http_degradation_module --with-http_stub_status_module --with-pcre --with-pcre-jit --with-google_perftools_module --with-cc-opt='-O2 -g -pipe -Wall -Wp,-D_FORTIFY_SOURCE=2 -fexceptions -fstack-protector-strong --param=ssp-buffer-size=4 -grecord-gcc-switches' --add-module=../ngx_cache_purge-2.3
+
+make
+make install
+--/etc/nginx/conf.d
+
+/etc/nginx/conf.d/cache.conf
+proxy_cache cache_one;
+add_header ATS-Cache $upstream_cache_status;
+proxy_cache_valid  200 304 301 302 8h;
+proxy_cache_valid 404 1m;
+proxy_cache_key $host$uri$is_args$args;
+
+/etc/nginx/conf.d/proxy.conf
+proxy_redirect    off;
+proxy_set_header  X-Forwarded-For  $proxy_add_x_forwarded_for;
+proxy_set_header  X-Real-IP  $remote_addr;
+proxy_set_header  Host $host;
+proxy_set_header X-Forwarded-Proto $scheme;
+
+/etc/nginx/conf.d/upstream.conf
+upstream radosgw {
+  server 192.168.100.181:80;
+  server 192.168.100.182:80;
+}
+
+/etc/nginx/conf.d/vhost.conf
+server {
+    listen       80 default_server;
+    server_name  csgainet.com www.csgainet.com;
+    access_log  /var/log/nginx/csssl8access.log  main;
+    error_log  /var/log/nginx/csssl8error.log;
+    root         /usr/share/nginx/html;
+    if ( $http_user_agent ~* "YisouSpider") {
+      return 403;
+    }
+
+    location ~ /purge(/.*) {
+      allow 127.0.0.1;
+      allow 192.168.100.0/24;
+      deny all;
+      proxy_cache_purge cache_one $host$1$is_args$args;
+    }
+    location ~ .*\.(gif|jpg|png|html|css|js|ico|swf|pdf|txt|zip)$ {
+      proxy_pass  http://radosgw;
+      include conf.d/proxy.conf;
+      include conf.d/cache.conf;
+    }
+
+    location / {
+      proxy_pass  http://radosgw;
+      include conf.d/proxy.conf;
+    }
+}

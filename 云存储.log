@@ -1,0 +1,14 @@
+./setUserQuota.sh vgouuFWSrRegBHVV $((3*1024*1024*1024*1024))
+
+
+
+R510	
+CPU:E5650*2	
+内存：8G*12	
+硬盘：NL-SAS1T7.2K*9+SSD200G+SSD400G*2	
+网卡：集成博通5716*2+IntelX540*2 	
+RAID卡：DELL PERC H700	
+远程控制卡：iDRAC6ent
+
+
+yum install ceph-radosgw

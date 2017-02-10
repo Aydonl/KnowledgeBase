@@ -1,0 +1,14 @@
+grid用户
+crsctl check crs 
+
+crsctl check cluster -all
+
+crsctl status resource -t 
+
+crsctl status resource -t -init
+
+crs_stat -v -t 
+
+
+crsctl status resource -t 
+

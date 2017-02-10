@@ -1,0 +1,27 @@
+#cobbler26 安装
+
+`wget -O /etc/yum.repo.d/cobbler26.repo http://download.opensuse.org/repositories/home:/libertas-ict:/cobbler26/CentOS_CentOS-6/home:libertas-ict:cobbler26.repo`
+
+
+`yum install cobbler dhcp xinetd tftp-server createrepo pykickstart cman libwrap mod_wsgi`
+
+##启动服务
+```
+service httpd start
+service xinetd start
+service cobblerd start
+```
+
+
+
+##使用
+###导入
+`cobbler import --arch=x86_64 --path=/mnt/ --name=CentOS7.2`
+
+`cobbler profile add --name=centos7.2-test --distro=CentOS7.2-all-x86_64`
+
+
+`cobbler system add --name=install_test --profile=centos6.8-test --ip-address=10.68.18.102 --mac-address=00:50:56:a2:0e:85 --interface=eth0 --hostname=cobbler.client --netmask=255.255.0.0 --gateway=10.68.0.1 --static=1`
+
+
+`cobbler system edit --name=install_test --netboot-enabled=1`

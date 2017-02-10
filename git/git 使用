@@ -1,0 +1,17 @@
+
+
+
+
+初始化Git仓库
+git init --bare sample.git
+
+
+git clone ssh://git@nantianmen.cc:26214/project/ansible.git
+
+# Server
+cd /home/git/ && \
+git init --bare InstallOs.git && \
+chown -R git.git InstallOs.git/
+
+#client
+git clone ssh://git@git.nantianmen.cc:3028/home/git/InstallOs.git

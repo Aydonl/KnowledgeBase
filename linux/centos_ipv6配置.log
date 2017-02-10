@@ -1,0 +1,11 @@
+centos ipv6配置
+
+配置ipv6地址
+ip -6 addr add 2400:A480:0:7032::22/64 dev eth0
+
+添加默认路由
+/sbin/ip -6 route add default via 2400:A480:0:7032::1
+
+ipv6 dns服务器
+
+2001:da8:202:10::37

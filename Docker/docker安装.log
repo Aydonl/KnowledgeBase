@@ -1,0 +1,55 @@
+docker安装
+
+系统：centos7.2
+
+disable selinux
+1、升级内核
+
+添加repo
+
+[centos7]
+name=CentOS-$releasever - kuaiyun
+baseurl=http://www.kuaiyunds.com/centos7/
+gpgcheck=0
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-7
+---------------------
+
+yum install kernel-lt -y
+grub2-set-default 0
+reboot
+
+2、安装openvswitch
+yum install openvswitch openvswitch-kmod -y
+3、安装docker
+yum install docker
+
+systemctl start openvswitch && systemctl enable openvswitch
+systemctl start docker && systemctl enable docker
+
+4、创建ovs网桥
+网桥配置
+[root@docker alpine_nginx]# more /etc/sysconfig/network-scripts/ifcfg-br0 
+DEVICE=br0
+DEVICETYPE=ovs
+TYPE=OVSBridge
+BOOTPROTO=static
+IPV6INIT=no
+IPADDR=192.168.66.197
+NETMASK=255.255.255.0
+GATEWAY=192.168.66.178
+DNS1=223.5.5.5
+ONBOOT=yes
+
+网卡配置
+[root@docker alpine_nginx]# more /etc/sysconfig/network-scripts/ifcfg-enp4s0 
+TYPE=OVSPort
+IPV6INIT=no
+IPV6_AUTOCONF=yes
+IPV6_DEFROUTE=yes
+IPV6_PEERDNS=yes
+IPV6_PEERROUTES=yes
+IPV6_FAILURE_FATAL=no
+DEVICE=enp4s0
+ONBOOT=yes
+DEVICETYPE=ovs
+OVS_BRIDGE=br0

@@ -1,0 +1,49 @@
+rsync 服务配置
+
+配置文件
+/etc/rsyncd.conf
+
+uid = nobody
+gid = nobody
+use chroot = no
+max connections = 10
+strict modes = yes
+pid file = /var/run/rsyncd.pid
+lock file = /var/run/rsync.lock
+log file = /var/log/rsyncd.log
+
+[data]
+path = /data
+comment = data file
+ignore errors
+read only = no
+write only = no
+hosts allow = *
+hosts deny = 192.168.12.131
+list = false
+uid = root
+gid = root
+auth users = datamig
+secrets file = /etc/data.pass
+
+#配置密码
+echo 'datamig:PASS123' > /etc/data.pass
+chmod 600 /etc/data.pass
+
+启动rsync daemon
+rsync --daemon --port=8001 -4
+# -4 ipv4
+
+#客户端
+
+{
+#配置密码文件 （可选）
+echo 'PASS123' > /tmp/pass
+chmod 600 /tmp/pass
+rsync -avz --progress --port=8001 --password-file=/tmp/pass /tmp/test.file datamig@SERVERIP::data 
+}
+rsync -avz --progress --port=8001 /tmp/test.file datamig@SERVERIP::data 
+
+
+--
+--bwlimit=100 限制为 100k Bytes/s

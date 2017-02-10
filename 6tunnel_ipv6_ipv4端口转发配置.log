@@ -1,0 +1,16 @@
+6tunnel  ipv6 --> ipv4
+
+环境： centos6 x86_64
+依赖包： automake14  make gcc
+
+yum install automake14 make gcc -y
+\cp -af /usr/bin/aclocal-1.4 /usr/bin/aclocal
+\cp -af /usr/bin/automake-1.4 /usr/bin/automake
+
+git clone https://github.com/wojtekka/6tunnel
+ cd 6tunnel && ./autogen.sh && make && make install
+ 
+使用方法：
+6tunnel [-4|-6] [-l local-host] original-port destination-host destination-port
+开机启动
+echo '/usr/local/bin/6tunnel -6 -l 2400:a480:f100:104::5a 80 122.114.133.85 80' >> /etc/rc.local

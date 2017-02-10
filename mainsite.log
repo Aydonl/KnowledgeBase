@@ -1,0 +1,53 @@
+grep -Eirn '(Runtime\.getRuntime|java\.io\.FIleOutputStream|JspSpy|JFolder|t00ls|ninty|cmdshell|jsp\s*File\s*Browser|action=filesystem)' ./ --include=*.{jsp,txt,jpg} | awk -F: '{pirnt "\nfilename: "$1"\nline:"$2"\nmatch: "$3"\n"}'
+
+---------------------------------
+
+
+mysql -uroot -p'1qazxsw2#EDC' -e 'show processlist' |grep -v Sleep
+for i in `mysql -uroot -p'1qazxsw2#EDC' -e 'show processlist' |grep -v Sleep |grep 'SELECT COUNT(tm.id)' |awk '{print $1}'`;do mysql -uroot -p'1qazxsw2#EDC' -e "kill $i";echo $i;done
+
+
+for i in `mysql -uroot -p'1qazxsw2#EDC' -e 'show processlist' |grep -v Sleep |grep 'Waiting for table level lock	' |awk '{print $1}'`;do mysql -uroot -p'1qazxsw2#EDC' -e "kill $i";echo $i;done
+
+
+
+
+
+
+
+SELECT * FROM view_order_admi
+
+
+for i in `mysql -uroot -p'1qazxsw2#EDC' -e 'show processlist' |grep -v Sleep |grep 'Copying to tmp table' |awk '{print $1}'`;do mysql -uroot -p'1qazxsw2#EDC' -e "kill $i";echo $i;done
+
+for i in `mysql -uroot -p'1qazxsw2#EDC' -e 'show processlist' |grep -v Sleep |grep 'IF(SUM(ta.taxable) ' |awk '{print $1}'`;do mysql -uroot -p'1qazxsw2#EDC' -e "kill $i";echo $i;done
+
+
+select count(*)
+
+for i in `mysql -uroot -p'1qazxsw2#EDC' -e 'show processlist' |grep -v Sleep |grep 'select count(\*) ' |awk '{print $1}'`;do mysql -uroot -p'1qazxsw2#EDC' -e "kill $i";echo $i;done
+
+
+for i in `mysql -uroot -p'1qazxsw2#EDC' -e 'show processlist' |grep -v Sleep |grep 'SELECT \* FROM view_order_admin ' |awk '{print $1}'`;do mysql -uroot -p'1qazxsw2#EDC' -e "kill $i";echo $i;done
+
+
+for i in `mysql -uroot -p'1qazxsw2#EDC' -e 'show processlist' |grep -v Sleep |grep 'Copying to tmp table' |awk '{print $1}'`;do mysql -uroot -p'1qazxsw2#EDC' -e "kill $i";echo $i;done
+
+sql执行时间排序
+
+
+
+
+mysql -uroot -p'1qazxsw2#EDC' -e 'show full processlist' |grep -v Sleep | sed -e '1d' -e '/event_scheduler/d' -e '/Binlog Dump/d' | awk -F'\t' '{if ($6 > 10){print $0}}'
+
+
+
+
+mysql -uroot -p'18wSeKpMV$dnn^6$' -e 'show processlist' |grep -v Sleep | sed -e '1d' -e '/event_scheduler/d' -e '/Binlog Dump/d' | awk -F'\t' '{if ($6 > 10){print $0}}'
+
+
+--GA_DB
+for i in `mysql -uroot -p'1qazxsw2#EDC' -e 'show processlist' |grep -v Sleep | sed -e '1d' -e '/event_scheduler/d' -e '/Binlog Dump/d' | awk -F'\t' '{if ($6 > 100){print $1}}'`;do echo $i;mysql -uroot -p'1qazxsw2#EDC' -e"kill $i";done
+
+--GA_beian
+for i in `mysql -uroot -p'18wSeKpMV$dnn^6$' -e 'show processlist' |grep -v Sleep | sed -e '1d' -e '/event_scheduler/d' -e '/Binlog Dump/d' | awk -F'\t' '{if ($6 > 100){print $1}}'`;do echo $i;mysql -uroot -p'18wSeKpMV$dnn^6$' -e"kill $i";done

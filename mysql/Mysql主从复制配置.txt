@@ -1,0 +1,12 @@
+Mysql主从复制配置：
+在mysql从服务器上，连接mysql，输入如下命令：
+
+1、CHANGE MASTER TO MASTER_HOST='master_ip',MASTER_USER='replication_user_name',MASTER_PASSWORD='replication_password',MASTER_LOG_FILE='recorded_log_file_name',MASTER_LOG_POS=recorded_log_position;
+2、start slave;
+
+其中：
+master_ip -- mysql主服务器的ip；
+replication_user_name -- mysql主服务器中配置的用于主从复制的用户名；
+replication_password -- mysql主服务器中配置的用于主从复制的用户名的密码；
+recorded_log_file_name -- mysql主服务器中二进制日志名称；
+recorded_log_position -- mysql主服务器中二进制日志的偏移量；

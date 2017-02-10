@@ -1,0 +1,61 @@
+# network config report for API
+#set $name = $getVar("name","")
+#set $next_server = $getVar("next_server","")
+cat > /tmp/network_report_for_API << EOF
+# coding:utf-8                                                                                                                                
+import subprocess
+import urllib2
+import json
+
+class GetInfo:
+  def __init__(self):
+    # {'Content-Type': 'application/json'}
+    self.headers = {
+      'User-Agent':'Mozilla/5.0 (Windows; U; Windows NT 6.1; AYDONURL; rv:1.9.1.6) Gecko/20091201 Firefox/3.5.6',
+      'Content-Type': 'application/json'
+    }
+  def get_eth_info(self):
+    """
+    """
+    ethinfos = {}
+    cmd = '/sbin/ip -f inet addr show |/bin/awk \'/scope global/{print \\$NF,\\$2}\''
+    result = subprocess.Popen(cmd,shell=True,stdout=subprocess.PIPE).stdout.read().strip().split('\n')
+    for ethinfo in result:
+      eth_int = ethinfo.split()[0]
+      ip = ethinfo.split()[1]
+      ethinfos[eth_int] = ip.split('/')[0]
+    return ethinfos
+  def post_url(self,url,data):
+    '''
+    '''
+    content=''
+    try:
+      request=urllib2.Request(url=url,data=data,headers=self.headers)
+      content = urllib2.urlopen(request).read()
+    except urllib2.URLError,e:
+      if hasattr(e,"reason"):
+        print "Failed to reach the server"
+        error=e.reason
+      elif hasattr(e,"code"):
+        print "The server couldn't fulfill the request"
+        error=e.code
+        print "Return content:",e.read()
+      else:
+        pass
+    if content:
+      return {'state':'sucess','content':content}
+    else:
+      return {'state':'error','content':error}
+
+if __name__ == '__main__':
+  # ethinfo = json.dumps(GetInfo().get_eth_info())
+  ethinfo = GetInfo().get_eth_info()
+  data = {}
+  data['name']='$name'
+  data['ethinfo']=ethinfo
+  data = json.dumps(data)
+  url = 'http://$next_server:8000/EthInfoTo2Layer'
+  GetInfo().post_url(url,data)
+EOF
+
+`which python` /tmp/network_report_for_API

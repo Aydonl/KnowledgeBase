@@ -1,0 +1,6 @@
+/usr/local/mysql/scripts/mysql_install_db --user=mysql --datadir=/mydata/data2
+
+
+
+
+mysqld_safe --defaults-file=/etc/3307my.cnf 2>&1 > /dev/null &

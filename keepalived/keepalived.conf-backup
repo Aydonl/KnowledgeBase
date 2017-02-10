@@ -1,0 +1,39 @@
+! Configuration File for keepalived
+global_defs {
+#   notification_email {   
+#     cuimingkun@yinwuweiye.com
+#   }
+#   notification_email_from keepalived@domain.com
+#   smtp_server 127.0.0.1
+#   smtp_connect_timeout 30
+#   router_id node1
+}
+vrrp_script chk_http_port {
+  script "/.ha/chk_nginx.sh" 
+  interval 6
+  weight -30
+  fall 1
+  rise 1
+}
+vrrp_instance VI_1 {
+    state BACKUP
+    interface eth1
+    virtual_router_id 78
+    priority 90        
+    advert_int 1
+    authentication {
+        auth_type PASS
+        auth_pass 1gainet
+    }
+    virtual_ipaddress {
+        #192.168.177.3/27 dev eth0 label eth0:1
+	116.255.248.6/24 dev eth0
+    }
+track_script {
+  chk_http_port
+       }
+    notify_master /.ha/to_master.sh
+    notify_backup /.ha/to_backup.sh
+    notify_fault /.ha/to_fault.sh
+}
+

@@ -1,0 +1,58 @@
+10.68.18.209 node1.rac.com node1
+10.68.18.212 node1-vip.rac.com node1-vip
+192.168.9.2 node1-priv.rac.com node1-priv
+10.68.18.210 node2.rac.com node2
+10.68.18.213 node2-vip.rac.com node2-vip
+192.168.9.3 node2-priv.rac.com node2-priv
+10.68.18.214 scan-cluster.rac.com scan-cluster
+
+1、/etc/hosts，关闭selinux，iptables -F；service iptables save
+2、运行脚本
+3、ssh互信
+4、共享存储
+5、配置ASM磁盘
+共享存储分区
+rpm -ivh oracleasm-support-2.1.8-1.el6.x86_64.rpm
+yum install kmod-oracleasm -y
+rpm -ivh oracleasmlib-2.0.4-1.el6.x86_64.rpm
+oracleasm status
+oracleasm configure -i -- grid --asmadmin
+oracleasm status
+oracleasm init
+oracleasm configure
+--创建ASM磁盘
+oracleasm listdisks
+oracleasm createdisk VOL1 /dev/sdb1
+oracleasm createdisk VOL2 /dev/sdb2
+oracleasm createdisk VOL3 /dev/sdc1
+oracleasm createdisk VOL4 /dev/sdc2
+6、安装grid
+rpm -ihv cvuqdisk-1.0.9-1.rpm
+
+./runcluvfy.sh stage -pre crsinst -n node1,node2 -fixup -verbose
+
+
+
+iptables -t nat -I PREROUTING -s 116.255.132.12 -p tcp --dport 10222 -j DNAT --to-destination 192.168.8.5:22
+iptables -t nat -I POSTROUTING -d 192.168.8.5 -p tcp --dport 22 -j SNAT --to-source 192.168.8.71
+iptables -t nat -I PREROUTING -s 116.255.132.12 -p tcp --dport 10223 -j DNAT --to-destination 192.168.8.6:22
+iptables -t nat -I POSTROUTING -d 192.168.8.6 -p tcp --dport 22 -j SNAT --to-source 192.168.8.71
+iptables -t nat -I PREROUTING -s 116.255.132.12 -p tcp --dport 10224 -j DNAT --to-destination 192.168.8.7:22
+iptables -t nat -I POSTROUTING -d 192.168.8.7 -p tcp --dport 22 -j SNAT --to-source 192.168.8.71
+iptables -t nat -I PREROUTING -s 116.255.132.12 -p tcp --dport 10225 -j DNAT --to-destination 192.168.8.8:22
+iptables -t nat -I POSTROUTING -d 192.168.8.8 -p tcp --dport 22 -j SNAT --to-source 192.168.8.71
+iptables -t nat -I PREROUTING -s 116.255.132.12 -p tcp --dport 10226 -j DNAT --to-destination 192.168.8.9:22
+iptables -t nat -I POSTROUTING -d 192.168.8.9 -p tcp --dport 22 -j SNAT --to-source 192.168.8.71
+iptables -t nat -I PREROUTING -s 116.255.132.12 -p tcp --dport 10227 -j DNAT --to-destination 192.168.8.10:22
+iptables -t nat -I POSTROUTING -d 192.168.8.10 -p tcp --dport 22 -j SNAT --to-source 192.168.8.71
+
+
+
+
+iptables -t nat -I PREROUTING -s 116.255.132.12 -p tcp --dport 10228 -j DNAT --to-destination 192.168.10.3:22
+iptables -t nat -I POSTROUTING -d 192.168.10.3 -p tcp --dport 22 -j SNAT --to-source 192.168.10.71
+iptables -t nat -I PREROUTING -s 116.255.132.12 -p tcp --dport 10229 -j DNAT --to-destination 192.168.10.4:22
+iptables -t nat -I POSTROUTING -d 192.168.10.4 -p tcp --dport 22 -j SNAT --to-source 192.168.10.71
+
+
+backup database format '/tmp/backup/orcl%u_%s_%p' include current controlfile for standby

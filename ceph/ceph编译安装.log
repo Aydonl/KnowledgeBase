@@ -1,0 +1,61 @@
+ceph编译安装
+环境初始化
+echo '*     hard     nofile    131072' >> /etc/security/limits.conf
+echo '*     hard     noproc     131072' >> /etc/security/limits.conf
+echo 'ulimit -n 131072' >> /etc/profile && ulimit -n 131072
+sed -i 's/\(SELINUX=\)enforcing/\1disabled/g' /etc/selinux/config
+setenforce 0
+echo 'vm.swappiness = 1' >> /etc/sysctl.conf
+sysctl -p
+sed -i 's/GSSAPIAuthentication yes/GSSAPIAuthentication no/g' /etc/ssh/sshd_config
+sed -i 's/#UseDNS yes/UseDNS no/g' /etc/ssh/sshd_config
+service sshd restart
+systemctl stop firewalld
+systemctl disable firewalld
+systemctl stop NetworkManager
+systemctl disable NetworkManager
+
+
+安装依赖
+yum -y install epel-release && \
+yum -y install libuuid-devel libblkid-devel libattr-devel zlib-devel \
+lzo-devel libacl-devel asciidoc xmlto e2fsprogs-devel tmux \
+make bison flex automake autoconf boost-devel \
+fuse-devel gcc-c++ libtool libuuid-devel libblkid-devel \
+keyutils-libs-devel cryptopp-devel fcgi-devel libcurl-devel \
+expat-devel gperftools-devel libedit-devel libatomic_ops-devel \
+snappy-devel leveldb-devel libaio-devel xfsprogs-devel git \
+libudev-devel gperftools redhat-lsb bzip2 openssl-devel
+
+编译内核
+https://cdn.kernel.org/pub/linux/kernel/v4.x/linux-4.4.30.tar.xz
+下载内核安装包linux-3.18.16.tar.xz
+执行如下操作(注意源码包的所在路径)：
+ tar Jxvf linux-3.18.16.tar.xz -C /usr/src/
+cd /usr/src/linux-3.18.16
+make -j4 && make -j4 modules_install && make install
+grub2-set-default 'CentOS Linux (4.4.30) 7 (Core)'
+grub2-editenv list
+编译完内核需要重系统reboot
+
+
+编译btrfs
+https://github.com/kdave/btrfs-progs/archive/v4.4.tar.gz
+下载btrfs源码包btrfs-progs-v3.18.2.tar.xz
+执行如下操作(注意源码包的所在路径)：
+tar xf btrfs-progs-v4.4.tar.gz -C /opt/ && \
+cd /opt/btrfs-progs-4.4 && \ 
+./autogen.sh && \
+./configure && \
+make && make install
+
+
+http://download.ceph.com/tarballs/ceph-0.94.9.tar.gz
+编译ceph
+下载ceph源码包ceph-0.80.9.tar.bz2
+执行如下操作(注意源码包的所在路径)：
+tar xf ceph-0.94.9.tar.gz -C /opt/ && \
+cd /opt/ceph-0.94.9 && \
+CXXFLAGS="-g -O2" ./configure --prefix=/usr --sbindir=/sbin \
+--localstatedir=/var --sysconfdir=/etc && make -j4 && make install
+

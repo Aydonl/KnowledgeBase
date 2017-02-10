@@ -1,0 +1,25 @@
+vncserver安装配置
+
+1、
+yum install tigervnc-server -y
+
+yum groupinstall "X Window System" Desktop -y
+2、vi /etc/sysconfig/vncservers
+添加如下内容
+VNCSERVERS="1:root"
+VNCSERVERARGS[1]="-geometry 1024x768 -alwaysshared -depth 24"
+
+3、运行命令启动vnc，设置vnc密码
+vncserver
+
+
+说明：
+
+1、-alwaysshared表示同一个显示端口允许多用户同时登录 -depth代为色深，参数有8、16、24、32；
+2、这里的“用户名”是指linux系统用户的名称；
+3、上面三行中第一行是设定可以使用VNC服务器的帐号，可以设定多个，但中间要用空格隔开。注意前面的数字“1”或是“2”，当你要从其它电脑来VNC服务器时，就需要用IP:1这种方法，而不能直接用IP。如假定你的VNC服务器IP是192.168.1.100，那想进入VNC服务器，并以peter用户登录时，需要在vncviewer里输入IP的地方输入：192.168.1.100:1,如果是root,那就是192.168.1.100:2；
+4、下面两行[1][2]最好与上面那个相对应，后面的800X600可以换成你电脑支持的分辨率。注意中间的”x”不是“*”，而是小写字母”x”。
+
+centos7 vnc server安装配置
+yum install tigervnc-server -y
+yum install gnome-classic-session gnome-terminal nautilus-open-terminal control-center liberation-mono-fonts

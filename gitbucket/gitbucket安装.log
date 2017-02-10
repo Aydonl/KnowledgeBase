@@ -1,0 +1,20 @@
+gitbucket安装
+
+下载链接：https://github.com/gitbucket/gitbucket/releases
+
+Installation
+
+GitBucket requires Java8. You have to install beforehand when it's not installed.
+
+Download latest gitbucket.war from the release page.
+Deploy it to the Servlet 3.0 container such as Tomcat 7.x, Jetty 8.x, GlassFish 3.x or higher.
+Access http://[hostname]:[port]/gitbucket/ using your web browser and logged-in with root / root.
+or you can start GitBucket by java -jar gitbucket.war without servlet container. In this case, GitBucket URL is http://[hostname]:8080/. You can specify following options.
+
+--port=[NUMBER]
+--prefix=[CONTEXTPATH]
+--host=[HOSTNAME]
+--gitbucket.home=[DATA_DIR]
+To upgrade GitBucket, only replace gitbucket.war after stop GitBucket. All GitBucket data is stored in HOME/.gitbucket. So if you want to back up GitBucket data, copy this directory to the other disk.
+
+About installation on Mac or Windows Server (with IIS), configuration of Apache or Nginx and also integration with other tools or services such as Jenkins or Slack, see Wiki.

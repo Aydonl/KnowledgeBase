@@ -1,0 +1,39 @@
+简介：
+备份脚本，实现了按根据实例，以数据库为单位进行备份，将数据库备份为sql文件，通过ssh管道传送到备份服务器10.68.17.42上/data2目录下。
+备份文件的目录结构为
+/data2/{Year}/{Month}/{Day}/{MysqlID}/{DBName}-{YearMonthDayHourMinuteSencond}.sql
+例：
+/data2/2015/08/20/mysql339/ab-20150820120918.sql
+
+
+环境需求：
+MySQL-python-1.2.3
+python-setuptools-0.6.10
+pymongo-2.7.2
+与备份服务器上备份用户mysqlpybackup配置ssh信任
+
+安装所需软件
+yum install MySQL-python python-setuptools -y
+wget http://10.100.0.26/python/pymongo-2.7.2.tar.gz
+
+tar xf pymongo-2.7.2.tar.gz
+cd pymongo-2.7.2
+python setup.py install
+
+调整备份用户权限
+之前创建的实例中'backup_admin'@'localhost'账户没有select权限，mysqldump需要select权限，所以进行如下调整：
+GRANT select,show view,reload,lock tables,replication client ON *.* TO 'backup_admin'@'localhost';flush privileges
+若实例中不存在用户'backup_admin'@'localhost'，则创建用户：
+GRANT select,show view,reload,lock tables,replication client ON *.* TO 'backup_admin'@'localhost' IDENTIFIED BY 'clouddb2014back';flush privileges;
+
+配置ssh信任
+sh /opt/shell/ssh_trust.sh 10.68.17.42 mysqlpybackup
+#backupuser@backserver
+
+备份脚本
+db_backup.py
+db_backup.sh
+
+添加计划任务
+echo '0 2 * * * /usr/bin/python /opt/shell/db_backup.py' >> /var/spool/cron/root
+/etc/init.d/crond reload

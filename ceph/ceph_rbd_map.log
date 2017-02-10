@@ -1,0 +1,12 @@
+ceph rbd map
+#物理机上挂载rbd块
+
+ceph -s --name client.rbd
+rbd create rbd_client01 --size 1024 --name client.rbd
+rbd ls -p rbd --name client.rbd
+rbd --image rbd_client01 info --name client.rbd
+rbd map --image rbd_client01 --name client.rbd
+rbd showmapped --name client.rbd
+fdisk -l /dev/rbd0
+mkfs.xfs /dev/rbd0
+mount /dev/rbd0 /mnt

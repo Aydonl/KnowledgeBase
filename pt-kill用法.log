@@ -1,0 +1,79 @@
+pt-kill 用法
+
+pt-kill --busy-time 10 --match-info 'SELECT|select' --ignore-user 'backup_admin' --kill-query --print --socket /tmp/mysql10.sock -u root -proot --interval 10 --log /tmp/kill.log --daemonize
+
+
+
+-----
+#!/bin/bash
+#
+#pt-kill --busy-time 10 --match-info 'SELECT|select' --ignore-user 'backup_admin' --kill-query --print --socket /tmp/mysql10.sock -u root -proot --interval 10 --log /tmp/kill.log --daemonize
+
+busytime="10"
+
+usage(){
+  echo "Usage: `basename $0` <USER PASSWORD SOCK>"
+  exit 1
+}
+checkparameter(){
+  if [ -z "$1" ]; then
+    echo -e "Option Missing ...\n"
+    usage
+    exit 3
+  fi  
+
+}
+
+user="$1"
+password="$2"
+sock="$3"
+checkparameter $user
+checkparameter $password
+checkparameter $sock
+logfile=`echo $sock |sed -e 's@/tmp/@@' -e 's@.sock@@' -e 's@/@@'`
+logfile="/tmp/"$logfile".log"
+
+
+/usr/bin/pt-kill --busy-time $busytime --match-info 'SELECT|select' --ignore-user 'backup_admin' --kill-query --print --socket $sock -u "$user" -p "$password" --interval $busytime --log "$logfile" --daemonize
+-----
+
+
+10.68.1.5
+
+wget http://10.100.0.26/mysql/percona-toolkit-2.1.1-1.noarch.rpm
+yum -y install percona-toolkit-2.1.1-1.noarch.rpm
+
+sh mypt-kill.sh iwcjxv rq3drl4o9a6y /tmp/mysql173.sock
+sh mypt-kill.sh rmgeyb mhuaowj13yd7 /tmp/mysql175.sock
+sh mypt-kill.sh 5bhu3c obzr2q3a5p5g /tmp/mysql206.sock
+sh mypt-kill.sh pwmtci grtrx7qn9h4d /tmp/mysql229.sock
+
+
+10.68.1.8
+wget http://10.100.0.26/mysql/percona-toolkit-2.1.1-1.noarch.rpm
+yum -y install percona-toolkit-2.1.1-1.noarch.rpm
+
+for i in 4007 4008 4009 4010;do echo -n "$i ";ps aux |grep $i |grep -o '/tmp/mysql.*.sock';done
+
+wget http://10.100.0.26/mysql/shell/mypt-kill.sh
+
+sh mypt-kill.sh z2kdrb 6u7hs03ckfqg /tmp/mysql339.sock
+sh mypt-kill.sh uycewa jy2xzyk3rw1g /tmp/mysql340.sock
+sh mypt-kill.sh vour1c jrtdyipsq4g9 /tmp/mysql342.sock
+sh mypt-kill.sh id77lh 20bnp6qjzxdv /tmp/mysql343.sock
+
+10.68.1.9
+
+for i in 4011 4012 4013;do echo -n "$i ";ps aux |grep $i |grep -o '/tmp/mysql.*.sock';done
+
+sh mypt-kill.sh wmq0zk 764fbyy6hqhq /tmp/mysql382.sock
+sh mypt-kill.sh 88r3qf o5ar7kmxc39x /tmp/mysql383.sock
+sh mypt-kill.sh yvc5jt sbszowxnp318 /tmp/mysql401.sock
+
+
+10.68.19.100
+
+for i in 4005 4006;do echo -n "$i ";ps aux |grep $i |grep -o '/tmp/mysql.*.sock';done
+
+sh mypt-kill.sh ebesu3 22cpqem9ogel /tmp/mysql234.sock
+sh mypt-kill.sh f1l0s2 zk269us9wfel /tmp/mysql235.sock

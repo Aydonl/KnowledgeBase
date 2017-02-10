@@ -1,0 +1,43 @@
+openssl rand -base64 16 |tr [a-z] [A-Z] 
+
+
+U2FsdGVkX1/ZBFduwkGGDG9rXr/6gw==
+
+加密
+echo awkls |openssl enc -aes-256-cfb -e -base64 -k 123 -salt
+解密
+echo U2FsdGVkX1/ZBFduwkGGDG9rXr/6gw== |openssl enc -aes-256-cfb -d -base64 -k 123 -salt
+
+#用法encstr  str  key
+function encstr()  
+{  
+    local str_need_enc=$1  
+    local str_key=$2  
+    local result="" 
+    if [ "X" = "X$str_need_enc" ];then 
+        return 1  
+    fi  
+    if [ "X" = "X$str_key" ];then 
+        return 2  
+    fi  
+    result=`echo $str_need_enc |openssl enc -aes-256-cfb -e -base64 -k $str_key -salt`  
+    echo $result  
+    return 0  
+} 
+#用法decstr  str  key
+ 
+function decstr()  
+{  
+    local str_need_dec=$1  
+    local str_key=$2  
+    local result="" 
+    if [ "X" = "X$str_need_dec" ];then 
+        return 1  
+    fi  
+    if [ "X" = "X$str_key" ];then 
+        return 2  
+    fi  
+    result=`echo $str_need_dec |openssl enc -aes-256-cfb -d -base64 -k $str_key`  
+    echo $result  
+    return 0  
+} 

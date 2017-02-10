@@ -1,0 +1,89 @@
+NFS
+yum install nfs-utils -y
+
+/etc/exports
+/opt/share 2.2.2.2/32(rw,no_root_squash,sync)
+
+nfs防火墙规则
+iptables -I INPUT -p tcp -s 192.168.8.0/24 --dport 111 -j ACCEPT
+iptables -I INPUT -p tcp -s 192.168.8.0/24 --dport 875 -j ACCEPT 
+iptables -I INPUT -p tcp -s 192.168.8.0/24 --dport 2049 -j ACCEPT
+iptables -I INPUT -p tcp -s 192.168.8.0/24 --dport 876 -j ACCEPT
+iptables -I INPUT -p udp -s 192.168.8.0/24 --dport 2049 -j ACCEPT
+iptables -I INPUT -p udp -s 192.168.8.0/24 --dport 875 -j ACCEPT
+iptables -I INPUT -p udp -s 192.168.8.0/24 --dport 111 -j ACCEPT
+iptables -I INPUT -p udp -s 192.168.8.0/24 --dport 876 -j ACCEPT
+
+客户端配置
+yum install nfs-utils -y
+mkdir /share
+mount -t nfs 192.168.8.12:/share /share
+
+服务器端
+/etc/init.d/rpcbind start
+/etc/init.d/nfs start
+
+nfs开机自动挂载
+192.168.8.12:/share	/share			nfs	rw,soft,intr	0 0
+
+116.255.248.6	10.152.5.10
+116.255.173.16	10.153.2.20
+
+tomcat
+useradd -r -M -s /sbin/nologin www
+chown -R www.www /gainet/server/tomcat/
+--------------
+在centos6.3下搭建了一台nfs服务器，然后用两台centos6.3的客户端挂载。为了保证挂载后，客户端和服务器端目录属主的一致，方便读写，在客户端和服务器端分别添加了www用户，www用户的uid一致，并且共享目录的属主设置为www。但是其中一台挂载后，目录的属主一直是nobody，但是另一台则正常，显示为www。nfs的服务器端对两台客户端的设置是一样的，但是挂载后显示的属主确不同。查找资料发现，在centos 6版本中默认使用的nfs-v4版本，其提供了称为rpc.idmapd 的守护进程，并使用 /etc/idmapd.conf 的配置文件。当请求加载nfsv4 时，该守护进程将处理 UID 和 GID 映射。默认使用nis,没有nis它会自动映射成nobody用户。解决办法如下
+（1）在客户端清除idmap的缓存，然后重启rpcidmap，并重新挂载。大部分情况下可以解决
+
+[root@ha1 ~]# nfsidmap -c
+[root@ha1 ~]# /etc/init.d/rpcidmapd restart
+正在启动 RPC idmapd：                                      [确定]
+正在启动 RPC idmapd：                                      [确定]
+（2）如果上面的办法没有解决，可以用下面的办法
+nfs服务器端，修改/etc/idmapd.conf，给Domain指定一个值，然后重启rpcidmap服务。
+
+[root@ha2 ~]# vi /etc/idmapd.conf
+[General]
+#Verbosity = 0
+# The following should be set to the local NFSv4 domain name
+# The default is the host's DNS domain name.
+#Domain = local.domain.edu
+Domain = mydomain.com
+重启服务
+[root@ha2 ~]# /etc/init.d/rpcidmapd restart
+Shutting down RPC idmapd:                                  [确定]
+正在启动 RPC idmapd：                                      [确定]
+nfs客户端，同样修改/etc/idmapd.conf，给Domain指定一个值，要与服务器端指定的域名相同，然后重启rpcidmap服务
+
+[root@ha1 ~]# vi /etc/idmapd.conf
+[General]
+#Verbosity = 0
+# The following should be set to the local NFSv4 domain name
+# The default is the host's DNS domain name.
+#Domain = local.domain.edu
+Domain = mydomain.com
+
+重启服务
+[root@ha1 ~]# /etc/init.d/rpcidmapd restart
+正在启动 RPC idmapd：                                      [确定]
+正在启动 RPC idmapd：                                      [确定]
+重新挂载后，发现目录属主正常，为www
+
+[root@ha1 ~]# df -h
+文件系统              容量  已用  可用 已用%% 挂载点
+/dev/sda2             9.9G  2.3G  7.1G  25% /
+tmpfs                 244M     0  244M   0% /dev/shm
+/dev/sda1             194M   28M  157M  15% /boot
+/dev/sda5             8.7G  148M  8.1G   2% /data
+192.168.1.109:/data/nfsshare
+                       19G  1.2G   17G   7% /mnt
+[root@ha1 ~]# ll /mnt/
+总用量 0
+-rw-rw-r-- 1 www www 0 3月  25 14:15 a
+-rw-rw-r-- 1 www www 0 3月  25 15:32 bb
+
+
+
+NFS挂载参数
+(rw,wdelay,no_root_squash,no_subtree_check,sec=sys,rw,secure,no_root_squash,no_all_squash)

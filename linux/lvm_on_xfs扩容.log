@@ -1,0 +1,10 @@
+lvm on xfs扩容
+
+pvcreate /dev/vdc
+vgextent VG_NAME /dev/vdc
+lvextent -l +100%Free /dev/VG_NAME/LV_NAME
+xfs_growfs MOUNT_POINT [-D size]
+
+note:
+The -D size option grows the file system to the specified size (expressed in file system blocks). Without the -D size option, xfs_growfs will grow the file system to the maximum size supported by the device.
+Before growing an XFS file system with -D size, ensure that the underlying block device is of an appropriate size to hold the file system later. Use the appropriate resizing methods for the affected block device.

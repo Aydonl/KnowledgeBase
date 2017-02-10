@@ -1,0 +1,119 @@
+mkdir /sys/fs/cgroup/cpuset/myceph && \
+echo 0-7 > /sys/fs/cgroup/cpuset/myceph/cpuset.cpus && \
+echo 0 > /sys/fs/cgroup/cpuset/myceph/cpuset.mems && \
+for i in `pgrep ceph`;do echo $i > /sys/fs/cgroup/cpuset/myceph/tasks;done ;cat /sys/fs/cgroup/cpuset/myceph/tasks  && \
+for i in `pgrep ceph`;do cat /proc/$i/status |grep 'Cpus_allowed_list';done
+
+
+mkdir /sys/fs/cgroup/cpuset/mykvm && \
+echo 12 > /sys/fs/cgroup/cpuset/mykvm/cpuset.cpus && \
+echo 0 > /sys/fs/cgroup/cpuset/mykvm/cpuset.mems && \
+for i in `pgrep qemu`;do echo $i > /sys/fs/cgroup/cpuset/mykvm/tasks;done ;cat /sys/fs/cgroup/cpuset/mykvm/tasks  && \
+for i in `pgrep qemu`;do cat /proc/$i/status |grep 'Cpus_allowed_list';done
+
+
+echo 12-14 > /sys/fs/cgroup/cpuset/mykvm/cpuset.cpus && \
+for i in `pgrep qemu`;do cat /proc/$i/status |grep 'Cpus_allowed_list';done
+
+
+mkdir /cgroup/cpuset/myceph1
+echo 2 > /cgroup/cpuset/myceph1/cpuset.cpus
+echo 0 > /cgroup/cpuset/myceph1/cpuset.mems
+echo pid > /cgroup/cpuset/myceph1/task
+--查看进程 在哪个cpu上
+ps -o pid,args,psr 10492
+
+
+
+----
+centos7
+sed -i '/^#vcpu_pin_set/avcpu_pin_set=12-23' /etc/nova/nova.conf && grep vcpu /etc/nova/nova.conf && systemctl restart openstack-nova-compute
+
+
+sed -i '/^#disk_cachemodes/adisk_cachemodes="network=writeback"' /etc/nova/nova.conf && grep disk_cachemodes /etc/nova/nova.conf && systemctl restart openstack-nova-compute
+
+centos6
+sed -i '/^#vcpu_pin_set/avcpu_pin_set=12-23' /etc/nova/nova.conf && grep vcpu /etc/nova/nova.conf && service openstack-nova-compute restart
+
+
+sed -i '/^#disk_cachemodes/adisk_cachemodes="network=writeback"' /etc/nova/nova.conf && grep disk_cachemodes /etc/nova/nova.conf && service openstack-nova-compute restart
+
+
+
+---迁移虚机
+host-uuid=`virsh list --uuid`
+
+
+nova live-migration host-uuid cs211-10
+
+--删除虚机
+host-id=`nova list |awk '/Shutdown/{print $2}}'`
+
+nova delete host-id
+
+
+--
+#获取主机id
+nova list |grep -v '122.114' |grep 'private' |awk '{print $2}'
+
+
+#申请公网段名为public的ip
+neutron floatingip-create public
+
+
+#为主机分配浮动ip
+nova floating-ip-associate ID IP
+nova floating-ip-associate f77e5f3b-4886-4683-9549-fd9d3058e7b1 122.114.120.213
+
+
+--重置虚拟机状态
+主机名称
+nova reset-state User-db124a0f-1a53-4a4a-8b58-adda4e998d19 --active
+nova reset-state HOST_ID --active
+
+
+
+--重置虚机flavor(Change the size of your server)
+
+host_id = `nova list`
+
+flavor_id = `nova flavor-list`
+
+
+nova resize host_id flavor_id
+
+nova resize-confirm HOST_ID
+
+
+#nova resize User-4e8bc6a3-be35-4745-ad8a-65eabe07955a m2.512M-40G-1M --poll
+#nova resize-confirm HOST_ID
+
+
+--获取vnc连接
+nova get-vnc-console <server> <console-type>
+<server>        Name or ID of server.
+<console-type>  Type of vnc console ("novnc" or "xvpvnc").
+
+
+--修改dns
+neutron subnet-update subnet-10.3.1 list=true --dns-nameservers 8.8.4.4 8.8.8.8
+
+
+--上传镜像
+glance image-create --name centos7-image --disk-format qcow2 --container-format bare --is-public True --file ./centos
+
+glance image-create --name win2003-32-image --disk-format raw --container-format bare --is-public True --file ./
+
+
+#linux
+glance image-create --name 20141203-win2003R2 --disk-format raw --container-format bare --is-public True --is-protected True --progress --file /home/windows2003R2.img
+
+
+#windows
+glance image-create --name 20141203-win2003R2 --disk-format raw --container-format bare --is-public True --is-protected True --progress --file /home/windows2003R2.img --property os_type=windows
+
+
+
+
+--bat脚本
+for /f %i in (a.txt) do mstsc /v:%i:22109

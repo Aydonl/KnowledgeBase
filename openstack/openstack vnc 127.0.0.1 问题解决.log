@@ -1,0 +1,34 @@
+ openstack vnc 127.0.0.1 问题解决
+
+
+ [root@phy1 ~]# grep -v ^# /etc/libvirt/libvirtd.conf | sed -e '/^$/d'
+listen_tls = 0
+listen_tcp = 1
+tcp_port = "16509"
+auth_tcp = "none"
+
+需要对libvirtdconf设置  
+防火墙中需要打开 5900:5980 vnc的端口需要允许访问 可以不用设置这么多 
+
+compute服务器
+novncproxy_host=0.0.0.0
+novncproxy_port=6080
+novncproxy_base_url=http://10.160.100.6:6080/vnc_auto.html
+vncserver_proxyclient_address=10.160.100.3
+vnc_enabled=true
+
+control服务器 
+novncproxy_host=0.0.0.0
+novncproxy_port=6080
+novncproxy_base_url=http://10.160.100.6:6080/vnc_auto.html
+
+controller服务器上需要
+chkconfig openstack-nova-novncproxy on
+service openstack-nova-novncproxy restart
+
+计算节点上需要
+iptables --insert INPUT 1 -m multiport -p tcp --dports 5900:5980 -m comment --comment "Allow 5900:5980 vnc" -j ACCEPT
+
+
+计算节点上需要
+iptables --insert INPUT 1 -m multiport -p tcp --dports 5900:5980 -m comment --comment "Allow 5900:5980 vnc" -j ACCEPT

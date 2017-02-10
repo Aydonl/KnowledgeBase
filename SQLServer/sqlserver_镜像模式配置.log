@@ -1,0 +1,70 @@
+------master---------
+alter database zxdyw_Data set partner off;
+restore database zxdyw_Data with recovery;
+drop database zxdyw_Data
+select * from master.sys.database_mirroring_endpoints
+
+DROP ENDPOINT 镜像 Endpoint_Mirroring
+
+
+CREATE ENDPOINT Endpoint_Mirroring
+    STATE=STARTED 
+    AS TCP (LISTENER_PORT=5022) 
+    FOR DATABASE_MIRRORING (AUTHENTICATION = WINDOWS,ROLE=PARTNER);
+GO
+USE master ;
+GO
+CREATE LOGIN [ZHUANGYI\sqlmirror2] FROM WINDOWS ;
+GO
+-- Grant connect permissions on endpoint to login account of witness.
+GRANT CONNECT ON ENDPOINT::Endpoint_Mirroring TO [ZHUANGYI\sqlmirror2];
+
+
+
+
+ALTER DATABASE [zxdyw_Data]
+    SET PARTNER = 
+    'TCP://dbmirror.zhuangyi.com:5022';
+GO
+
+ALTER DATABASE [zxdyw_Data] 
+    SET WITNESS = 
+    'TCP://dbwintness.zhuangyi.com:5022';
+GO
+------mirror------------
+alter database zxdyw_Data set partner off;
+restore database zxdyw_Data with recovery;
+drop database zxdyw_Data
+select * from master.sys.database_mirroring_endpoints
+
+DROP ENDPOINT Endpoint_Mirroring
+
+
+CREATE ENDPOINT Endpoint_Mirroring
+    STATE=STARTED 
+    AS TCP (LISTENER_PORT=5022) 
+    FOR DATABASE_MIRRORING (AUTHENTICATION = WINDOWS,ROLE=ALL);
+GO
+USE master ;
+GO
+CREATE LOGIN [ZHUANGYI\sqlmirror2] FROM WINDOWS ;
+
+
+
+
+
+RESTORE DATABASE zxdyw_Data 
+    FROM DISK = 'D:\zxdyw_Data.bak' 
+    WITH NORECOVERY
+GO
+
+
+GO
+-- Grant connect permissions on endpoint to login account of witness.
+GRANT CONNECT ON ENDPOINT::Endpoint_Mirroring TO [ZHUANGYI\sqlmirror2];
+
+
+ALTER DATABASE zxdyw_Data 
+    SET PARTNER = 
+    'TCP://dbmaster.zhuangyi.com:5022';
+GO
