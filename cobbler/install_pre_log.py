@@ -25,7 +25,7 @@ def my_get_process(server,ip):
     #my_url = 'http://10.102.200.2:8080/isp_kuaiyun_ywht/interface/updateProcess.action?name=%s&status=3' %(server)
     #my_url = 'http://10.100.0.6:8080/restfulapi/auto-deploy/tasks/%s' %(server)
     my_url = 'http://10.220.103.101:38085/restfulapi/auto-deploy/tasks/%s' %(server)
-    data = {"state":3}
+    data = {"update_state":{"state":3}}
     data = json.dumps(data)
     headers = { 
       'User-Agent':'Mozilla/5.0 (Windows; U; Windows NT 6.1; AYDONURL; rv:1.9.1.6) Gecko/20091201 Firefox/3.5.6',

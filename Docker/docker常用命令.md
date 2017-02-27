@@ -57,3 +57,7 @@ redis:2.8.4
 #获得容器id a8f
 ovs-docker add-port br0 eth0 a8f --ipaddress=192.168.66.240/23 --gateway=192.168.66.178
 ```
+
+## docker常用选项
+
+-h HOSTNAME --指定主机名
